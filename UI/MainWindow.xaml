@@ -1,0 +1,350 @@
+﻿<Window x:Class="UI.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:UI"
+        mc:Ignorable="d"
+        Title="Telegram Messenger Bot" Height="700" Width="900"
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E0E0E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="8"/>
+            <Setter Property="Padding" Value="15"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="Black" Direction="270" ShadowDepth="2" BlurRadius="8" Opacity="0.1"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#005A9E"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#004578"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#CCCCCC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        
+        <Style x:Key="SecondaryButton" TargetType="Button">
+            <Setter Property="Background" Value="#28A745"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="4" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#218838"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1E7E34"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#CCCCCC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="#F5F5F5">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Border Grid.Row="0" Background="#2C3E50" Padding="20,15">
+            <TextBlock Text="Telegram Messenger Bot" 
+                       FontSize="24" 
+                       FontWeight="Bold" 
+                       Foreground="White" 
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+        <!-- Main Content -->
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="20">
+
+                <!-- Account Connection Section -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Подключение аккаунтов" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,0,15"/>
+                        
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Название аккаунта:" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding AccountName, UpdateSourceTrigger=PropertyChanged}" 
+                                         Padding="8" Height="35"/>
+                                
+                                <TextBlock Text="API ID:" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding ApiId, UpdateSourceTrigger=PropertyChanged}" 
+                                         Padding="8" Height="35"/>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="API Hash:" Margin="0,0,0,5"/>
+                                <TextBox Text="{Binding ApiHash, UpdateSourceTrigger=PropertyChanged}" 
+                                         Padding="8" Height="35"/>
+                                
+                                <TextBlock Text="Номер телефона:" Margin="0,10,0,5"/>
+                                <TextBox Text="{Binding PhoneNumber, UpdateSourceTrigger=PropertyChanged}" 
+                                         Padding="8" Height="35"/>
+                            </StackPanel>
+
+                            <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="2"
+                                    Content="Подключить аккаунт" 
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding ConnectAccountCommand}" 
+                                    Margin="0,15,0,0" 
+                                    HorizontalAlignment="Center"/>
+                        </Grid>
+
+                        <!-- Connected Accounts List -->
+                        <TextBlock Text="Подключенные аккаунты:" 
+                                   FontWeight="Bold" 
+                                   Margin="0,20,0,10"/>
+                        <ListBox ItemsSource="{Binding ConnectedAccounts}" 
+                                 Height="100" 
+                                 Background="White" 
+                                 BorderBrush="#E0E0E0">
+                            <ListBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" 
+                                                 Fill="{Binding IsConnected, Converter={x:Static local:BoolToColorConverter.Instance}}" 
+                                                 Margin="0,0,10,0" 
+                                                 VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,0,10,0"/>
+                                        <TextBlock Text="{Binding PhoneNumber}" Foreground="Gray"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ListBox.ItemTemplate>
+                        </ListBox>
+                        
+                        <Button Content="Обновить список" 
+                                Command="{Binding RefreshAccountsCommand}" 
+                                HorizontalAlignment="Right" 
+                                Margin="0,10,0,0" 
+                                Padding="10,5" 
+                                Background="Transparent" 
+                                BorderBrush="#007ACC" 
+                                BorderThickness="1" 
+                                Foreground="#007ACC"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Dialog Search Section -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Поиск диалога" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,0,15"/>
+                        
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="Username:" 
+                                       VerticalAlignment="Center" 
+                                       Margin="0,0,10,0"/>
+                            <TextBox Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" 
+                                     Width="200" 
+                                     Padding="8" 
+                                     Height="35"/>
+                            <Button Content="Найти диалог" 
+                                    Style="{StaticResource PrimaryButton}"
+                                    Command="{Binding SearchDialogCommand}" 
+                                    Margin="15,0,0,0"/>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+
+                <!-- Actions Section -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Действия с сообщениями" 
+                                   FontSize="18" 
+                                   FontWeight="Bold" 
+                                   Margin="0,0,0,15"/>
+
+                        <!-- Found Dialog Actions -->
+                        <Border Background="#D4EDDA" 
+                                BorderBrush="#C3E6CB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="15" 
+                                Margin="0,0,0,15"
+                                Visibility="{Binding IsDialogFound, Converter={x:Static local:BoolToVisibilityConverter.Instance}}">
+                            <StackPanel>
+                                <TextBlock Text="✓ Диалог найден!" 
+                                           Foreground="#155724" 
+                                           FontWeight="Bold" 
+                                           Margin="0,0,0,10"/>
+                                
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                    <TextBlock Text="Имя:" 
+                                               VerticalAlignment="Center" 
+                                               Margin="0,0,10,0"/>
+                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                             Width="200" 
+                                             Padding="8" 
+                                             Height="35"/>
+                                </StackPanel>
+                                
+                                <Button Content="Отправить 'нет ответа'" 
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding SendNoReplyCommand}" 
+                                        HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Not Found Dialog Actions -->
+                        <Border Background="#F8D7DA" 
+                                BorderBrush="#F5C6CB" 
+                                BorderThickness="1" 
+                                CornerRadius="4" 
+                                Padding="15"
+                                Visibility="{Binding IsDialogNotFound, Converter={x:Static local:BoolToVisibilityConverter.Instance}}">
+                            <StackPanel>
+                                <TextBlock Text="✗ Диалог не найден" 
+                                           Foreground="#721C24" 
+                                           FontWeight="Bold" 
+                                           Margin="0,0,0,10"/>
+                                
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                        <TextBlock Text="Имя:" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Padding="8" Height="35"/>
+                                    </StackPanel>
+                                    
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <TextBlock Text="Дата:" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Date, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Padding="8" Height="35"/>
+                                    </StackPanel>
+                                </Grid>
+                                
+                                <Button Content="Отправить 'первое сообщение'" 
+                                        Style="{StaticResource SecondaryButton}"
+                                        Command="{Binding SendFirstMessageCommand}" 
+                                        Margin="0,15,0,0" 
+                                        HorizontalAlignment="Left"/>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Border>
+
+                <!-- Status Log Section -->
+                <Border Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,15">
+                            <TextBlock Text="Лог событий" 
+                                       FontSize="18" 
+                                       FontWeight="Bold"/>
+                            <Button Content="Очистить" 
+                                    Command="{Binding ClearStatusLogCommand}" 
+                                    Margin="15,0,0,0" 
+                                    Padding="8,4" 
+                                    Background="Transparent" 
+                                    BorderBrush="#DC3545" 
+                                    BorderThickness="1" 
+                                    Foreground="#DC3545"/>
+                        </StackPanel>
+                        
+                        <ListBox ItemsSource="{Binding StatusLog}" 
+                                 Height="200" 
+                                 Background="White" 
+                                 BorderBrush="#E0E0E0" 
+                                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                            <ListBox.ItemContainerStyle>
+                                <Style TargetType="ListBoxItem">
+                                    <Setter Property="Padding" Value="5"/>
+                                    <Setter Property="BorderThickness" Value="0"/>
+                                </Style>
+                            </ListBox.ItemContainerStyle>
+                        </ListBox>
+                    </StackPanel>
+                </Border>
+
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Status Bar -->
+        <Border Grid.Row="2" Background="#34495E" Padding="15,10">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Grid.Column="0" 
+                           Text="{Binding StatusMessage}" 
+                           Foreground="White" 
+                           VerticalAlignment="Center"/>
+
+                <ProgressBar Grid.Column="1" 
+                             Width="100" 
+                             Height="15" 
+                             IsIndeterminate="{Binding IsLoading}" 
+                             Visibility="{Binding IsLoading, Converter={x:Static local:BoolToVisibilityConverter.Instance}}"/>
+            </Grid>
+        </Border>
+
+    </Grid>
+</Window>
