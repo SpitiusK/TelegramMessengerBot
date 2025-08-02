@@ -9,17 +9,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae57233c-981d-4bd1-b5bc-3984dc6577eb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CoreLogic/Models/Models.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TelegramClient/TelegramService.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/TelegramMessengerBot.sln" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UI/Converters/BoolToColorConverter.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UI/Converters/BoolToVisibilityConverter.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UI/ViemModels/MainViemModel.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UI/Viems/InputDialog.xaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UI/Viems/InputDialog.xaml.cs" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/UI/scripts.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UI/MainWindow.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/UI/MainWindow.xaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UI/ViemModels/MainViemModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/UI/ViemModels/MainViemModel.cs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -62,23 +54,23 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    ".NET Project.UI.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "XThreadsFramesViewSplitterKey": "0.42990655",
-    "git-widget-placeholder": "master",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "editor.preferences.smartKeys_rider",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;.NET Project.UI.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;XThreadsFramesViewSplitterKey&quot;: &quot;0.42990655&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;editor.preferences.smartKeys_rider&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager" selected=".NET Project.UI">
     <configuration name="UI" type="DotNetProject" factoryName=".NET Project">
       <option name="EXE_PATH" value="" />
@@ -137,6 +129,7 @@
       <workItem from="1753812876051" duration="6005000" />
       <workItem from="1753891962534" duration="12169000" />
       <workItem from="1754059908175" duration="10953000" />
+      <workItem from="1754161052530" duration="4502000" />
     </task>
     <servers />
   </component>

@@ -67,7 +67,7 @@ namespace TelegramClient
                 var client = new Client(configFunc);
 
                 OnStatusChanged?.Invoke($"Подключение к аккаунту {name} ({phoneNumber})...");
-                await client.LoginUserIfNeeded();
+                Console.WriteLine(await client.LoginUserIfNeeded());
                 
                 account.Client = client;
                 account.IsConnected = true;
@@ -348,7 +348,7 @@ namespace TelegramClient
 
                 account.IsConnected = false;
                 account.Client = null;
-                
+                _accounts.Remove(account);
                 OnStatusChanged?.Invoke($"Аккаунт {accountName} отключен");
                 return true;
             }

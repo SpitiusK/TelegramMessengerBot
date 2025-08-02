@@ -186,7 +186,7 @@ namespace UI.ViewModels
             }
         }
 
-        private string _apiId = "";
+        private string _apiId = "14261180";
         public string ApiId
         {
             get => _apiId;
@@ -197,7 +197,7 @@ namespace UI.ViewModels
             }
         }
 
-        private string _apiHash = "";
+        private string _apiHash = "b333eb50e310c7774cd0adc6d18a0875";
         public string ApiHash
         {
             get => _apiHash;
@@ -232,6 +232,7 @@ namespace UI.ViewModels
         public ICommand ConnectAccountCommand { get; }
         public ICommand RefreshAccountsCommand { get; }
         public ICommand ClearStatusLogCommand { get; }
+        public ICommand DisconnectAccountCommand { get; }
 
         #endregion
 
@@ -257,6 +258,7 @@ namespace UI.ViewModels
             ConnectAccountCommand = new AsyncRelayCommand(ConnectAccountAsync, CanExecuteConnectAccount);
             RefreshAccountsCommand = new RelayCommand(RefreshAccounts);
             ClearStatusLogCommand = new RelayCommand(ClearStatusLog);
+            DisconnectAccountCommand = new AsyncRelayCommand(DisconnectAccountAsync, CanExecuteDisconnectAccount);
 
             // Загружаем подключенные аккаунты
             RefreshAccounts(null);
@@ -514,8 +516,6 @@ namespace UI.ViewModels
                     
                     // Очищаем поля
                     AccountName = "";
-                    // ApiId = "";
-                   // ApiHash = ""; 
                     PhoneNumber = "";
                 }
                 else
@@ -589,6 +589,37 @@ namespace UI.ViewModels
             }
         }
 
+        private async Task DisconnectAccountAsync(object parameter)
+        {
+            if (parameter is not string accountName || string.IsNullOrWhiteSpace(accountName))
+                return;
+
+            IsLoading = true;
+
+            try
+            {
+                bool success = await _scriptManager.DisconnectAccountAsync(accountName);
+
+                if (success)
+                {
+                    StatusMessage = $"Аккаунт {accountName} отключен успешно";
+                    RefreshAccounts(null);
+                }
+                else
+                {
+                    StatusMessage = $"Ошибка отключения аккаунта {accountName}";
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = $"Ошибка: {ex.Message}";
+            }
+            finally
+            {
+                IsLoading = false;
+            }
+        }
+
         #endregion
 
         #region Command CanExecute Methods
@@ -622,7 +653,13 @@ namespace UI.ViewModels
                    !string.IsNullOrWhiteSpace(PhoneNumber);
         }
 
+        private bool CanExecuteDisconnectAccount(object parameter)
+        {
+            return !IsLoading && parameter is string accountName && !string.IsNullOrWhiteSpace(accountName);
+        }
+
         #endregion
+
         #region Cleanup
 
         public void Dispose()

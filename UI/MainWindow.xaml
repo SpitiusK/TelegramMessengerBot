@@ -82,6 +82,37 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#DC3545"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                CornerRadius="3" 
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#C82333"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#BD2130"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter Property="Background" Value="#CCCCCC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </Window.Resources>
 
     <Grid Background="#F5F5F5">
@@ -156,19 +187,39 @@
                                    FontWeight="Bold" 
                                    Margin="0,20,0,10"/>
                         <ListBox ItemsSource="{Binding ConnectedAccounts}" 
-                                 Height="100" 
+                                 Height="120" 
                                  Background="White" 
                                  BorderBrush="#E0E0E0">
                             <ListBox.ItemTemplate>
                                 <DataTemplate>
-                                    <StackPanel Orientation="Horizontal">
-                                        <Ellipse Width="8" Height="8" 
-                                                 Fill="{Binding IsConnected, Converter={x:Static local:BoolToColorConverter.Instance}}" 
-                                                 Margin="0,0,10,0" 
-                                                 VerticalAlignment="Center"/>
-                                        <TextBlock Text="{Binding Name}" FontWeight="Bold" Margin="0,0,10,0"/>
-                                        <TextBlock Text="{Binding PhoneNumber}" Foreground="Gray"/>
-                                    </StackPanel>
+                                    <Border Padding="5" Margin="2" CornerRadius="4" Background="#F8F9FA">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto"/>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+
+                                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="10" Height="10" 
+                                                         Fill="{Binding IsConnected, Converter={x:Static local:BoolToColorConverter.Instance}}" 
+                                                         Margin="0,0,10,0" 
+                                                         VerticalAlignment="Center"/>
+                                                <StackPanel>
+                                                    <TextBlock Text="{Binding Name}" FontWeight="Bold" FontSize="14"/>
+                                                    <TextBlock Text="{Binding PhoneNumber}" Foreground="Gray" FontSize="12"/>
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <Button Grid.Column="2" 
+                                                    Content="Отключить" 
+                                                    Style="{StaticResource DangerButton}"
+                                                    Command="{Binding DataContext.DisconnectAccountCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                                                    CommandParameter="{Binding Name}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="10,0,0,0"/>
+                                        </Grid>
+                                    </Border>
                                 </DataTemplate>
                             </ListBox.ItemTemplate>
                         </ListBox>

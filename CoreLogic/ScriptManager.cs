@@ -148,9 +148,13 @@ namespace CoreLogic
                    "Надеюсь, у тебя отличное настроение, и мы сможем хорошо пообщаться! 😊\n\n" +
                    "Как дела? Чем занимаешься?";
         }
-
-        public void Dispose()
+        
+        public async Task<bool> DisconnectAccountAsync(string accountName)
         {
+            return await TelegramService.DisconnectAccountAsync(accountName);
+        }
+        public void Dispose()
+        { 
             _telegramService?.Dispose();
         }
     }
