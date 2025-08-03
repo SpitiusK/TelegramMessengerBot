@@ -9,8 +9,10 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae57233c-981d-4bd1-b5bc-3984dc6577eb" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/CoreLogic/MessageTemplateManager.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.TelegramMessengerBot/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TelegramMessengerBot/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/messageScripts.json" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/messageScripts.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,6 +32,18 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
+  "lastFilter": {
+    "state": "OPEN",
+    "assignee": "SpitiusK"
+  }
+}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/SpitiusK/TelegramMessengerBot.git",
+    "accountId": "104eecd8-5e3b-40a8-81d5-5cc2449c5abf"
+  }
+}]]></component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/DecompilerCache/decompiler/367b5754873c4c5698017f76eb829e8a139800/e4/83936945/Client.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/1d6a8e26ff685df511d27cfbfbaa19b4429f3987483c684e50dff93e5cc5/TL.Xtended.cs" root0="FORCE_HIGHLIGHTING" />
@@ -134,7 +148,7 @@
       <workItem from="1754059908175" duration="10953000" />
       <workItem from="1754161052530" duration="4502000" />
       <workItem from="1754173238901" duration="10174000" />
-      <workItem from="1754236130195" duration="5011000" />
+      <workItem from="1754236130195" duration="7073000" />
     </task>
     <task id="LOCAL-00001" summary="add account choice when sending message">
       <option name="closed" value="true" />
@@ -152,7 +166,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754240239746</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="added usage MessageTemplate(model)">
+      <option name="closed" value="true" />
+      <created>1754241253811</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1754241253811</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -164,7 +186,8 @@
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
     <MESSAGE value="add account choice when sending message" />
     <MESSAGE value="add template message on json file" />
-    <option name="LAST_COMMIT_MESSAGE" value="add template message on json file" />
+    <MESSAGE value="added usage MessageTemplate(model)" />
+    <option name="LAST_COMMIT_MESSAGE" value="added usage MessageTemplate(model)" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
