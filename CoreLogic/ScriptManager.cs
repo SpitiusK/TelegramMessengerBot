@@ -2,6 +2,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.IO;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Linq;
 using TelegramClient;
 using CoreLogic.Models;
 
@@ -10,6 +14,8 @@ namespace CoreLogic
     public class ScriptManager : IDisposable
     {
         private readonly TelegramService _telegramService;
+        private readonly string _scriptsFilePath;
+        private Dictionary<string, string> _messageTemplates;
 
         public event Action<string> OnStatusChanged;
         public event Action<string> OnError;
@@ -17,13 +23,40 @@ namespace CoreLogic
         // Предоставляем доступ к TelegramService для подписки на события
         public TelegramService TelegramService => _telegramService;
 
-        public ScriptManager()
+        public ScriptManager(string scriptsFilePath = "messageScripts.json")
         {
             _telegramService = new TelegramService();
+            _scriptsFilePath = scriptsFilePath;
             
             // Перенаправляем события от TelegramService
             _telegramService.OnStatusChanged += status => OnStatusChanged?.Invoke(status);
             _telegramService.OnError += error => OnError?.Invoke(error);
+            
+            // Загружаем шаблоны сообщений при инициализации
+            LoadMessageTemplates();
+        }
+
+        private void LoadMessageTemplates()
+        {
+            try
+            {
+                if (File.Exists(_scriptsFilePath))
+                {
+                    var json = File.ReadAllText(_scriptsFilePath);
+                    _messageTemplates = JsonSerializer.Deserialize<Dictionary<string, string>>(json) 
+                                      ?? new Dictionary<string, string>();
+                }
+                else
+                {
+                    _messageTemplates = new Dictionary<string, string>();
+                    OnError?.Invoke($"Файл шаблонов сообщений не найден: {_scriptsFilePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _messageTemplates = new Dictionary<string, string>();
+                OnError?.Invoke($"Ошибка загрузки шаблонов сообщений: {ex.Message}");
+            }
         }
 
         public async Task<bool> ConnectAccountAsync(AccountConnectionRequest request)
@@ -170,41 +203,82 @@ namespace CoreLogic
 
         private string BuildMessage(string scriptType, Dictionary<string, string> parameters)
         {
-            return scriptType switch
+            try
             {
-                "no_reply" => BuildNoReplyMessage(parameters),
-                "first_message" => BuildFirstMessage(parameters),
-                _ => throw new ArgumentException($"Неизвестный тип скрипта: {scriptType}")
-            };
+                var template = LoadMessageTemplate(scriptType);
+                return CreateMessage(template, parameters);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException($"Ошибка создания сообщения для скрипта '{scriptType}': {ex.Message}");
+            }
         }
 
-        private string BuildNoReplyMessage(Dictionary<string, string> parameters)
+        private string LoadMessageTemplate(string scriptType)
         {
-            var name = parameters.GetValueOrDefault("Имя", "");
-            
-            return $"Привет, {name}! 👋\n\n" +
-                   "Я заметил, что ты не ответил на мое предыдущее сообщение. " +
-                   "Возможно, ты был занят или не заметил его.\n\n" +
-                   "Если у тебя есть время, буду рад продолжить наше общение! 😊";
+            if (_messageTemplates == null)
+            {
+                LoadMessageTemplates();
+            }
+
+            if (_messageTemplates.TryGetValue(scriptType, out var template))
+            {
+                return template;
+            }
+
+            throw new ArgumentException($"Шаблон для скрипта '{scriptType}' не найден в файле {_scriptsFilePath}");
         }
 
-        private string BuildFirstMessage(Dictionary<string, string> parameters)
+        private string CreateMessage(string template, Dictionary<string, string> parameters)
         {
-            var name = parameters.GetValueOrDefault("Имя", "");
-            var date = parameters.GetValueOrDefault("Дата", DateTime.Now.ToString("dd.MM.yyyy"));
-            
-            return $"Привет, {name}! 👋\n\n" +
-                   $"Сегодня {date}, и я решил написать тебе первое сообщение!\n\n" +
-                   "Надеюсь, у тебя отличное настроение, и мы сможем хорошо пообщаться! 😊\n\n" +
-                   "Как дела? Чем занимаешься?";
+            if (string.IsNullOrEmpty(template))
+            {
+                throw new ArgumentException("Шаблон сообщения не может быть пустым");
+            }
+
+            var result = template;
+
+            // Используем регулярное выражение для поиска всех плейсхолдеров вида {Параметр}
+            var regex = new Regex(@"\{([^}]+)\}");
+            var matches = regex.Matches(template);
+
+            foreach (Match match in matches)
+            {
+                var placeholder = match.Value; // {Имя}
+                var parameterName = match.Groups[1].Value; // Имя
+
+                if (parameters.TryGetValue(parameterName, out var parameterValue))
+                {
+                    result = result.Replace(placeholder, parameterValue);
+                }
+                else
+                {
+                    // Если параметр не найден, заменяем на пустую строку или оставляем как есть
+                    // В зависимости от требований можно выбросить исключение
+                    result = result.Replace(placeholder, $"[{parameterName}]");
+                }
+            }
+
+            return result;
         }
-        
+
         public async Task<bool> DisconnectAccountAsync(string accountName)
         {
             return await TelegramService.DisconnectAccountAsync(accountName);
         }
-        
-        
+
+        // Метод для перезагрузки шаблонов (может быть полезен если файл изменился)
+        public void ReloadMessageTemplates()
+        {
+            LoadMessageTemplates();
+        }
+
+        // Метод для получения доступных типов скриптов
+        public IEnumerable<string> GetAvailableScriptTypes()
+        {
+            return _messageTemplates?.Keys ?? Enumerable.Empty<string>();
+        }
+
         public void Dispose()
         { 
             _telegramService?.Dispose();

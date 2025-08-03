@@ -9,9 +9,11 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae57233c-981d-4bd1-b5bc-3984dc6577eb" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/.idea.TelegramMessengerBot/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TelegramMessengerBot/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/CoreLogic.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/CoreLogic.csproj" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UI/MainWindow.xaml" beforeDir="false" afterPath="$PROJECT_DIR$/UI/MainWindow.xaml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/UI/ViemModels/MainViemModel.cs" beforeDir="false" afterPath="$PROJECT_DIR$/UI/ViemModels/MainViemModel.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UI/UI.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/UI/UI.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/UI/scripts.json" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/messageScripts.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -39,7 +41,10 @@
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/884b427af6991b921d14a0ee294fe695e2cfc75cc2e8cbce090f4b84affee1/Client.Helpers.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/9eda537f15ea23cdfae523c19e87eb303a3ded88937ae7e55919387a43f70/ExecutionContext.cs" root0="FORCE_HIGHLIGHTING" />
     <setting file="file://$APPLICATION_CONFIG_DIR$/resharper-host/SourcesCache/fbda1dd9741f88dacbae74d327806c14626cf681c55bf4eea5b976cbf18a1/CollectionView.cs" root0="FORCE_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/UI/obj/Debug/net8.0-windows/MainWindow.g.cs" root0="SKIP_HIGHLIGHTING" />
+    <setting file="file://$PROJECT_DIR$/UI/obj/Debug/net8.0-windows/Viems/InputDialog.g.cs" root0="SKIP_HIGHLIGHTING" />
   </component>
+  <component name="MetaFilesCheckinStateConfiguration" checkMetaFiles="true" />
   <component name="ProblemsViewState">
     <option name="selectedTabId" value="CurrentFile" />
   </component>
@@ -130,15 +135,29 @@
       <workItem from="1753891962534" duration="12169000" />
       <workItem from="1754059908175" duration="10953000" />
       <workItem from="1754161052530" duration="4502000" />
+      <workItem from="1754173238901" duration="10174000" />
+      <workItem from="1754236130195" duration="3507000" />
     </task>
+    <task id="LOCAL-00001" summary="add account choice when sending message">
+      <option name="closed" value="true" />
+      <created>1754183427715</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1754183427715</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="UnityCheckinConfiguration" checkUnsavedScenes="true" />
   <component name="UnityProjectConfiguration" hasMinimizedUI="false" />
   <component name="VcsManagerConfiguration">
     <option name="CLEAR_INITIAL_COMMIT_MESSAGE" value="true" />
+    <MESSAGE value="add account choice when sending message" />
+    <option name="LAST_COMMIT_MESSAGE" value="add account choice when sending message" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -170,13 +189,13 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="DotNet Breakpoints">
           <url>file://$PROJECT_DIR$/TelegramClient/TelegramService.cs</url>
-          <line>149</line>
+          <line>159</line>
           <properties documentPath="C:\Users\User\RiderProjects\TelegramMessengerBot\TelegramClient\TelegramService.cs" containingFunctionPresentation="Method 'SearchDialogAsync'">
             <startOffsets>
-              <option value="5401" />
+              <option value="6464" />
             </startOffsets>
             <endOffsets>
-              <option value="5402" />
+              <option value="6465" />
             </endOffsets>
           </properties>
           <option name="timeStamp" value="20" />

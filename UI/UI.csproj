@@ -25,10 +25,4 @@
       </Page>
     </ItemGroup>
 
-    <ItemGroup>
-      <None Update="scripts.json">
-        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-      </None>
-    </ItemGroup>
-
 </Project>

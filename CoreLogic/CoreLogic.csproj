@@ -10,4 +10,10 @@
       <ProjectReference Include="..\TelegramClient\TelegramClient.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="messageScripts.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
