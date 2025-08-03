@@ -16,7 +16,6 @@ namespace UI.Views
         public InputDialog()
         {
             InitializeComponent();
-            InputTextBox.Focus();
         }
 
         /// <summary>
@@ -36,9 +35,12 @@ namespace UI.Views
                 $"На номер {phoneNumber} отправлен код подтверждения.\n" +
                 "Проверьте сообщения в Telegram и введите полученный код:";
 
+            // Настраиваем видимость полей
             dialog.InputTextBox.Visibility = Visibility.Visible;
             dialog.PasswordBox.Visibility = Visibility.Collapsed;
-            dialog.InputTextBox.Focus();
+            
+            // Устанавливаем фокус после загрузки окна
+            dialog.Loaded += (s, e) => dialog.InputTextBox.Focus();
 
             return dialog.ShowDialog() == true ? dialog.InputText : null;
         }
@@ -60,9 +62,12 @@ namespace UI.Views
                 $"Для аккаунта {phoneNumber} включена двухфакторная аутентификация.\n" +
                 "Введите пароль облачной авторизации:";
 
+            // Настраиваем видимость полей
             dialog.InputTextBox.Visibility = Visibility.Collapsed;
             dialog.PasswordBox.Visibility = Visibility.Visible;
-            dialog.PasswordBox.Focus();
+            
+            // Устанавливаем фокус после загрузки окна
+            dialog.Loaded += (s, e) => dialog.PasswordBox.Focus();
 
             return dialog.ShowDialog() == true ? dialog.InputText : null;
         }
@@ -84,15 +89,17 @@ namespace UI.Views
 
             if (isPassword)
             {
+                // Настраиваем для пароля
                 dialog.InputTextBox.Visibility = Visibility.Collapsed;
                 dialog.PasswordBox.Visibility = Visibility.Visible;
-                dialog.PasswordBox.Focus();
+                dialog.Loaded += (s, e) => dialog.PasswordBox.Focus();
             }
             else
             {
+                // Настраиваем для обычного текста
                 dialog.InputTextBox.Visibility = Visibility.Visible;
                 dialog.PasswordBox.Visibility = Visibility.Collapsed;
-                dialog.InputTextBox.Focus();
+                dialog.Loaded += (s, e) => dialog.InputTextBox.Focus();
             }
 
             return dialog.ShowDialog() == true ? dialog.InputText : null;
@@ -116,6 +123,13 @@ namespace UI.Views
                     "Внимание", 
                     MessageBoxButton.OK, 
                     MessageBoxImage.Warning);
+                
+                // Возвращаем фокус на соответствующее поле
+                if (IsPasswordMode)
+                    PasswordBox.Focus();
+                else
+                    InputTextBox.Focus();
+                
                 return;
             }
 

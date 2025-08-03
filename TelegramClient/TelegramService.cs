@@ -52,31 +52,85 @@ namespace TelegramClient
                     PhoneNumber = phoneNumber
                 };
 
+                OnStatusChanged?.Invoke($"Подключение к аккаунту {name} ({phoneNumber})...");
+
                 // Создаем функцию конфигурации
                 Func<string, string> configFunc = what => what switch
                 {
                     "api_id" => apiId,
                     "api_hash" => apiHash,
                     "phone_number" => phoneNumber,
-                    "verification_code" => GetVerificationCode(phoneNumber),
-                    "password" => GetPassword(phoneNumber),
                     "session_pathname" => GetSessionPath(phoneNumber),
                     _ => null
                 };
 
                 var client = new Client(configFunc);
 
-                OnStatusChanged?.Invoke($"Подключение к аккаунту {name} ({phoneNumber})...");
-                Console.WriteLine(await client.LoginUserIfNeeded());
+                // Выполняем авторизацию пошагово
+                var loginState = await client.Login(phoneNumber);
                 
-                account.Client = client;
-                account.IsConnected = true;
-                
-                _accounts.Add(account);
-                _clients[name] = client;
-                
-                OnStatusChanged?.Invoke($"Аккаунт {name} ({phoneNumber}) подключен успешно");
-                return true;
+                while (loginState != null)
+                {
+                    switch (loginState)
+                    {
+                        case "verification_code":
+                            OnStatusChanged?.Invoke($"Запрос кода подтверждения для {phoneNumber}");
+                            var code = OnVerificationCodeRequested?.Invoke(phoneNumber);
+                            
+                            if (string.IsNullOrWhiteSpace(code))
+                            {
+                                OnError?.Invoke("Код подтверждения не был введен");
+                                return false;
+                            }
+                            
+                            OnStatusChanged?.Invoke("Код подтверждения получен, проверяем...");
+                            loginState = await client.Login(code.Trim());
+                            break;
+
+                        case "password":
+                            OnStatusChanged?.Invoke($"Запрос пароля 2FA для {phoneNumber}");
+                            var password = OnPasswordRequested?.Invoke(phoneNumber);
+                            
+                            if (string.IsNullOrWhiteSpace(password))
+                            {
+                                OnError?.Invoke("Пароль 2FA не был введен");
+                                return false;
+                            }
+                            
+                            OnStatusChanged?.Invoke("Пароль 2FA получен, проверяем...");
+                            loginState = await client.Login(password);
+                            break;
+
+                        case "name":
+                            // Если требуется имя пользователя (новый аккаунт)
+                            OnStatusChanged?.Invoke("Требуется ввод имени пользователя");
+                            loginState = await client.Login("User"); // Можно запросить через UI
+                            break;
+
+                        default:
+                            OnError?.Invoke($"Неожиданное состояние авторизации: {loginState}");
+                            return false;
+                    }
+                }
+
+                // Проверяем, что авторизация прошла успешно
+                var me = await client.Users_GetUsers(new[] { new InputUserSelf() });
+                if (me?.Length > 0)
+                {
+                    account.Client = client;
+                    account.IsConnected = true;
+                    
+                    _accounts.Add(account);
+                    _clients[name] = client;
+                    
+                    OnStatusChanged?.Invoke($"Аккаунт {name} ({phoneNumber}) подключен успешно");
+                    return true;
+                }
+                else
+                {
+                    OnError?.Invoke("Не удалось получить информацию о пользователе после авторизации");
+                    return false;
+                }
             }
             catch (Exception ex)
             {
@@ -91,59 +145,15 @@ namespace TelegramClient
             var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
             var sessionsDirectory = System.IO.Path.Combine(baseDirectory, "Sessions");
             
+            // Создаем папку, если она не существует
+            if (!System.IO.Directory.Exists(sessionsDirectory))
+            {
+                System.IO.Directory.CreateDirectory(sessionsDirectory);
+            }
+            
             // Убираем символы, которые нельзя использовать в имени файла
             var cleanPhoneNumber = phoneNumber.Replace("+", "").Replace(" ", "").Replace("-", "");
             return System.IO.Path.Combine(sessionsDirectory, $"session_{cleanPhoneNumber}.dat");
-        }
-
-        private string GetVerificationCode(string phoneNumber)
-        {
-            try
-            {
-                OnStatusChanged?.Invoke($"Запрос кода подтверждения для {phoneNumber}");
-                
-                // Вызываем событие для запроса кода через UI
-                var code = OnVerificationCodeRequested?.Invoke(phoneNumber);
-
-                if (string.IsNullOrWhiteSpace(code))
-                {
-                    OnError?.Invoke("Код подтверждения не был введен");
-                    return null;
-                }
-
-                OnStatusChanged?.Invoke("Код подтверждения получен, проверяем...");
-                return code.Trim();
-            }
-            catch (Exception ex)
-            {
-                OnError?.Invoke($"Ошибка при получении кода подтверждения: {ex.Message}");
-                return null;
-            }
-        }
-
-        private string GetPassword(string phoneNumber)
-        {
-            try
-            {
-                OnStatusChanged?.Invoke($"Запрос пароля 2FA для {phoneNumber}");
-                
-                // Вызываем событие для запроса пароля через UI
-                var password = OnPasswordRequested?.Invoke(phoneNumber);
-
-                if (string.IsNullOrWhiteSpace(password))
-                {
-                    OnError?.Invoke("Пароль 2FA не был введен");
-                    return null;
-                }
-
-                OnStatusChanged?.Invoke("Пароль 2FA получен, проверяем...");
-                return password;
-            }
-            catch (Exception ex)
-            {
-                OnError?.Invoke($"Ошибка при получении пароля 2FA: {ex.Message}");
-                return null;
-            }
         }
 
         public async Task<DialogInfo> SearchDialogAsync(string username)

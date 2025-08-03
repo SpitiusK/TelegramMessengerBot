@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Threading;
 using CoreLogic;
 using CoreLogic.Models;
 using TelegramClient;
@@ -79,7 +80,7 @@ namespace UI.ViewModels
     public class MainViewModel : INotifyPropertyChanged
     {
         private readonly ScriptManager _scriptManager;
-        private readonly SynchronizationContext _uiContext;
+        private readonly Dispatcher _dispatcher;
         private DialogInfo _currentDialog;
 
         #region INotifyPropertyChanged Implementation
@@ -238,12 +239,12 @@ namespace UI.ViewModels
 
         public MainViewModel()
         {
-            // Сохраняем контекст UI потока
-            _uiContext = SynchronizationContext.Current;
+            // Сохраняем Dispatcher для выполнения операций в UI потоке
+            _dispatcher = Dispatcher.CurrentDispatcher;
             
             _scriptManager = new ScriptManager();
 
-            // Подписываемся на события с правильной обработкой потоков
+            // Подписываемся на события
             _scriptManager.OnStatusChanged += OnStatusChanged;
             _scriptManager.OnError += OnError;
             
@@ -268,77 +269,56 @@ namespace UI.ViewModels
 
         private void OnStatusChanged(string status)
         {
-            // Выполняем обновление в UI потоке
-            if (_uiContext != null)
+            // Выполняем в UI потоке
+            _dispatcher.BeginInvoke(new Action(() =>
             {
-                _uiContext.Post(_ =>
-                {
-                    StatusMessage = status;
-                    StatusLog.Add($"[{DateTime.Now:HH:mm:ss}] {status}");
-                }, null);
-            }
-            else
-            {
-                // Fallback для случаев, когда SynchronizationContext недоступен
-                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    StatusMessage = status;
-                    StatusLog.Add($"[{DateTime.Now:HH:mm:ss}] {status}");
-                }));
-            }
+                StatusMessage = status;
+                StatusLog.Add($"[{DateTime.Now:HH:mm:ss}] {status}");
+            }));
         }
 
         private void OnError(string error)
         {
-            // Выполняем обновление в UI потоке
-            if (_uiContext != null)
+            // Выполняем в UI потоке
+            _dispatcher.BeginInvoke(new Action(() =>
             {
-                _uiContext.Post(_ =>
-                {
-                    StatusMessage = $"Ошибка: {error}";
-                    StatusLog.Add($"[{DateTime.Now:HH:mm:ss}] ОШИБКА: {error}");
-                }, null);
-            }
-            else
-            {
-                // Fallback для случаев, когда SynchronizationContext недоступен
-                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    StatusMessage = $"Ошибка: {error}";
-                    StatusLog.Add($"[{DateTime.Now:HH:mm:ss}] ОШИБКА: {error}");
-                }));
-            }
+                StatusMessage = $"Ошибка: {error}";
+                StatusLog.Add($"[{DateTime.Now:HH:mm:ss}] ОШИБКА: {error}");
+            }));
         }
 
         private string OnVerificationCodeRequested(string phoneNumber)
         {
             string code = null;
             
-            // Обеспечиваем выполнение в UI потоке для диалогов
-            if (_uiContext != null)
+            // Создаем ManualResetEventSlim для синхронизации
+            using var resetEvent = new ManualResetEventSlim(false);
+            
+            // Выполняем показ диалога в UI потоке и ждем результат
+            _dispatcher.Invoke(() =>
             {
-                var resetEvent = new ManualResetEventSlim(false);
-                _uiContext.Post(_ =>
+                try
                 {
-                    try
-                    {
-                        code = InputDialog.ShowVerificationCodeDialog(phoneNumber, Application.Current.MainWindow);
-                    }
-                    finally
-                    {
-                        resetEvent.Set();
-                    }
-                }, null);
-                resetEvent.Wait();
-            }
-            else
-            {
-                // Fallback
-                Application.Current?.Dispatcher.Invoke(() =>
+                    // Получаем главное окно приложения
+                    var mainWindow = Application.Current?.MainWindow;
+                    
+                    // Показываем диалог
+                    code = InputDialog.ShowVerificationCodeDialog(phoneNumber, mainWindow);
+                }
+                catch (Exception ex)
                 {
-                    code = InputDialog.ShowVerificationCodeDialog(phoneNumber, Application.Current.MainWindow);
-                });
-            }
+                    // Логируем ошибку
+                    OnError($"Ошибка при показе диалога кода подтверждения: {ex.Message}");
+                }
+                finally
+                {
+                    // Сигнализируем о завершении
+                    resetEvent.Set();
+                }
+            });
+            
+            // Ждем завершения операции в UI потоке
+            resetEvent.Wait();
             
             return code;
         }
@@ -347,31 +327,34 @@ namespace UI.ViewModels
         {
             string password = null;
             
-            // Обеспечиваем выполнение в UI потоке для диалогов
-            if (_uiContext != null)
+            // Создаем ManualResetEventSlim для синхронизации
+            using var resetEvent = new ManualResetEventSlim(false);
+            
+            // Выполняем показ диалога в UI потоке и ждем результат
+            _dispatcher.Invoke(() =>
             {
-                var resetEvent = new ManualResetEventSlim(false);
-                _uiContext.Post(_ =>
+                try
                 {
-                    try
-                    {
-                        password = InputDialog.ShowPasswordDialog(phoneNumber, Application.Current.MainWindow);
-                    }
-                    finally
-                    {
-                        resetEvent.Set();
-                    }
-                }, null);
-                resetEvent.Wait();
-            }
-            else
-            {
-                // Fallback
-                Application.Current?.Dispatcher.Invoke(() =>
+                    // Получаем главное окно приложения
+                    var mainWindow = Application.Current?.MainWindow;
+                    
+                    // Показываем диалог
+                    password = InputDialog.ShowPasswordDialog(phoneNumber, mainWindow);
+                }
+                catch (Exception ex)
                 {
-                    password = InputDialog.ShowPasswordDialog(phoneNumber, Application.Current.MainWindow);
-                });
-            }
+                    // Логируем ошибку
+                    OnError($"Ошибка при показе диалога пароля 2FA: {ex.Message}");
+                }
+                finally
+                {
+                    // Сигнализируем о завершении
+                    resetEvent.Set();
+                }
+            });
+            
+            // Ждем завершения операции в UI потоке
+            resetEvent.Wait();
             
             return password;
         }
@@ -536,57 +519,27 @@ namespace UI.ViewModels
         private void RefreshAccounts(object parameter)
         {
             // Обновляем коллекцию в UI потоке
-            if (_uiContext != null)
+            _dispatcher.BeginInvoke(new Action(() =>
             {
-                _uiContext.Post(_ =>
+                ConnectedAccounts.Clear();
+                var accounts = _scriptManager.GetConnectedAccounts();
+                
+                foreach (var account in accounts)
                 {
-                    ConnectedAccounts.Clear();
-                    var accounts = _scriptManager.GetConnectedAccounts();
-                    
-                    foreach (var account in accounts)
-                    {
-                        ConnectedAccounts.Add(account);
-                    }
+                    ConnectedAccounts.Add(account);
+                }
 
-                    StatusMessage = $"Подключено аккаунтов: {accounts.Count}";
-                }, null);
-            }
-            else
-            {
-                // Fallback
-                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    ConnectedAccounts.Clear();
-                    var accounts = _scriptManager.GetConnectedAccounts();
-                    
-                    foreach (var account in accounts)
-                    {
-                        ConnectedAccounts.Add(account);
-                    }
-
-                    StatusMessage = $"Подключено аккаунтов: {accounts.Count}";
-                }));
-            }
+                StatusMessage = $"Подключено аккаунтов: {accounts.Count}";
+            }));
         }
 
         private void ClearStatusLog(object parameter)
         {
             // Очищаем лог в UI потоке
-            if (_uiContext != null)
+            _dispatcher.BeginInvoke(new Action(() =>
             {
-                _uiContext.Post(_ =>
-                {
-                    StatusLog.Clear();
-                }, null);
-            }
-            else
-            {
-                // Fallback
-                Application.Current?.Dispatcher.BeginInvoke(new Action(() =>
-                {
-                    StatusLog.Clear();
-                }));
-            }
+                StatusLog.Clear();
+            }));
         }
 
         private async Task DisconnectAccountAsync(object parameter)
