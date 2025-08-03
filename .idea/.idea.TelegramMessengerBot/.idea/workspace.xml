@@ -9,10 +9,14 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="ae57233c-981d-4bd1-b5bc-3984dc6577eb" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/CoreLogic/MessageTemplateManager.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CoreLogic/Constants.cs" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/CoreLogic/Interfaces/IMessageTemplateManager.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/.idea.TelegramMessengerBot/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/.idea.TelegramMessengerBot/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/CoreLogic.csproj" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/CoreLogic.csproj" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/MessageTemplateManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/MessageTemplateManager.cs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/Models/Models.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/Models/Models.cs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/ScriptManager.cs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CoreLogic/messageScripts.json" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/messageScripts.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/CoreLogic/messageScripts.json" beforeDir="false" afterPath="$PROJECT_DIR$/CoreLogic/messageTemplates.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -148,7 +152,7 @@
       <workItem from="1754059908175" duration="10953000" />
       <workItem from="1754161052530" duration="4502000" />
       <workItem from="1754173238901" duration="10174000" />
-      <workItem from="1754236130195" duration="7073000" />
+      <workItem from="1754236130195" duration="13513000" />
     </task>
     <task id="LOCAL-00001" summary="add account choice when sending message">
       <option name="closed" value="true" />
@@ -174,7 +178,15 @@
       <option name="project" value="LOCAL" />
       <updated>1754241253811</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="added MessageTemplateManager, update struct of messageScripts">
+      <option name="closed" value="true" />
+      <created>1754243543601</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1754243543601</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -187,7 +199,8 @@
     <MESSAGE value="add account choice when sending message" />
     <MESSAGE value="add template message on json file" />
     <MESSAGE value="added usage MessageTemplate(model)" />
-    <option name="LAST_COMMIT_MESSAGE" value="added usage MessageTemplate(model)" />
+    <MESSAGE value="added MessageTemplateManager, update struct of messageScripts" />
+    <option name="LAST_COMMIT_MESSAGE" value="added MessageTemplateManager, update struct of messageScripts" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

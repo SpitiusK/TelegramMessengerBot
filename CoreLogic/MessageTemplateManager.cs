@@ -6,24 +6,55 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Linq;
 using CoreLogic.Models;
+using CoreLogic.Interfaces;
 
 namespace CoreLogic
 {
-    public class MessageTemplateManager
+    /// <summary>
+    /// Менеджер для управления шаблонами сообщений
+    /// Отвечает за загрузку, сохранение и манипуляцию шаблонами
+    /// </summary>
+    public sealed class MessageTemplateManager : IMessageTemplateManager
     {
-        private readonly string _scriptsFilePath;
-        private Dictionary<string, MessageTemplateData> _templates;
+        #region Private Fields
 
-        public event Action<string> OnError;
-        public event Action<string> OnTemplateAdded;
-        public event Action<string> OnTemplateUpdated;
-        public event Action<string> OnTemplateDeleted;
+        private readonly string _templatesFilePath;
+        private readonly Regex _parameterRegex;
+        private Dictionary<string, MessageTemplate> _templates;
+        private readonly JsonSerializerOptions _jsonOptions;
 
-        public MessageTemplateManager(string scriptsFilePath = "messageScripts.json")
+        #endregion
+
+        #region Events
+
+        public event Action<string>? OnError;
+        public event Action<string>? OnTemplateAdded;
+        public event Action<string>? OnTemplateUpdated;
+        public event Action<string>? OnTemplateDeleted;
+
+        #endregion
+
+        #region Constructor
+
+        public MessageTemplateManager(string? templatesFilePath = null)
         {
-            _scriptsFilePath = scriptsFilePath;
+            _templatesFilePath = templatesFilePath ?? Constants.MESSAGE_TEMPLATES_FILE;
+            _parameterRegex = new Regex(@"\{([^}]+)\}", RegexOptions.Compiled);
+            _templates = new Dictionary<string, MessageTemplate>();
+            
+            _jsonOptions = new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                PropertyNameCaseInsensitive = true
+            };
+
             LoadTemplates();
         }
+
+        #endregion
+
+        #region Public Methods
 
         /// <summary>
         /// Добавляет новый шаблон сообщения
@@ -31,48 +62,40 @@ namespace CoreLogic
         /// <param name="templateName">Название шаблона (ключ)</param>
         /// <param name="template">Шаблон с параметрами в формате {parametr1}{parametr2}</param>
         /// <param name="description">Описание шаблона</param>
-        /// <returns>True если шаблон успешно добавлен, False если произошла ошибка</returns>
+        /// <returns>True если шаблон успешно добавлен</returns>
         public bool AddTemplate(string templateName, string template, string description)
         {
+            if (!ValidateTemplateInput(templateName, template))
+                return false;
+
             try
             {
-                if (string.IsNullOrWhiteSpace(templateName))
-                {
-                    OnError?.Invoke("Название шаблона не может быть пустым");
-                    return false;
-                }
-
-                if (string.IsNullOrWhiteSpace(template))
-                {
-                    OnError?.Invoke("Шаблон не может быть пустым");
-                    return false;
-                }
-
-                if (_templates == null)
-                {
-                    _templates = new Dictionary<string, MessageTemplateData>();
-                }
-
-                // Извлекаем параметры из шаблона
                 var parameters = ExtractParametersFromTemplate(template);
+                var isUpdate = _templates.ContainsKey(templateName);
 
-                var templateData = new MessageTemplateData
+                var templateData = new MessageTemplate
                 {
+                    Name = templateName,
                     Template = template,
-                    Description = description ?? "",
+                    Description = description ?? string.Empty,
                     Parameters = parameters
                 };
 
                 _templates[templateName] = templateData;
 
-                // Сохраняем в файл
-                if (SaveTemplates())
+                if (!SaveTemplates())
+                    return false;
+
+                if (isUpdate)
+                {
+                    OnTemplateUpdated?.Invoke($"Шаблон '{templateName}' успешно обновлен");
+                }
+                else
                 {
                     OnTemplateAdded?.Invoke($"Шаблон '{templateName}' успешно добавлен");
-                    return true;
                 }
 
-                return false;
+                return true;
             }
             catch (Exception ex)
             {
@@ -86,21 +109,13 @@ namespace CoreLogic
         /// </summary>
         public bool UpdateTemplate(string templateName, string template, string description)
         {
-            try
+            if (!_templates.ContainsKey(templateName))
             {
-                if (!_templates.ContainsKey(templateName))
-                {
-                    OnError?.Invoke($"Шаблон '{templateName}' не найден");
-                    return false;
-                }
-
-                return AddTemplate(templateName, template, description); // AddTemplate обновит существующий
-            }
-            catch (Exception ex)
-            {
-                OnError?.Invoke($"Ошибка обновления шаблона: {ex.Message}");
+                OnError?.Invoke($"Шаблон '{templateName}' не найден");
                 return false;
             }
+
+            return AddTemplate(templateName, template, description);
         }
 
         /// <summary>
@@ -108,14 +123,20 @@ namespace CoreLogic
         /// </summary>
         public bool DeleteTemplate(string templateName)
         {
+            if (string.IsNullOrWhiteSpace(templateName))
+            {
+                OnError?.Invoke("Название шаблона не может быть пустым");
+                return false;
+            }
+
+            if (!_templates.ContainsKey(templateName))
+            {
+                OnError?.Invoke($"Шаблон '{templateName}' не найден");
+                return false;
+            }
+
             try
             {
-                if (_templates == null || !_templates.ContainsKey(templateName))
-                {
-                    OnError?.Invoke($"Шаблон '{templateName}' не найден");
-                    return false;
-                }
-
                 _templates.Remove(templateName);
 
                 if (SaveTemplates())
@@ -136,47 +157,33 @@ namespace CoreLogic
         /// <summary>
         /// Получает конкретный шаблон
         /// </summary>
-        public MessageTemplate GetTemplate(string templateName)
+        public MessageTemplate? GetTemplate(string templateName)
         {
-            if (_templates == null || !_templates.TryGetValue(templateName, out var templateData))
-            {
+            if (string.IsNullOrWhiteSpace(templateName))
                 return null;
-            }
 
-            return new MessageTemplate
-            {
-                Name = templateName,
-                Template = templateData.Template,
-                Description = templateData.Description,
-                Parameters = templateData.Parameters
-            };
+            return _templates.TryGetValue(templateName, out var template) 
+                ? CloneTemplate(template) 
+                : null;
         }
 
         /// <summary>
         /// Получает все шаблоны
         /// </summary>
-        public List<MessageTemplate> GetAllTemplates()
+        public IReadOnlyList<MessageTemplate> GetAllTemplates()
         {
-            if (_templates == null)
-            {
-                return new List<MessageTemplate>();
-            }
-
-            return _templates.Select(kvp => new MessageTemplate
-            {
-                Name = kvp.Key,
-                Template = kvp.Value.Template,
-                Description = kvp.Value.Description,
-                Parameters = kvp.Value.Parameters
-            }).ToList();
+            return _templates.Values
+                .Select(CloneTemplate)
+                .ToList()
+                .AsReadOnly();
         }
 
         /// <summary>
         /// Получает список названий всех шаблонов
         /// </summary>
-        public List<string> GetTemplateNames()
+        public IReadOnlyList<string> GetTemplateNames()
         {
-            return _templates?.Keys.ToList() ?? new List<string>();
+            return _templates.Keys.ToList().AsReadOnly();
         }
 
         /// <summary>
@@ -184,7 +191,8 @@ namespace CoreLogic
         /// </summary>
         public bool TemplateExists(string templateName)
         {
-            return _templates?.ContainsKey(templateName) ?? false;
+            return !string.IsNullOrWhiteSpace(templateName) && 
+                   _templates.ContainsKey(templateName);
         }
 
         /// <summary>
@@ -204,62 +212,74 @@ namespace CoreLogic
             }
         }
 
+        #endregion
+
         #region Private Methods
 
+        /// <summary>
+        /// Загружает шаблоны из JSON файла
+        /// </summary>
         private void LoadTemplates()
         {
             try
             {
-                if (!File.Exists(_scriptsFilePath))
+                if (!File.Exists(_templatesFilePath))
                 {
-                    // Создаем файл с базовыми шаблонами если его нет
-                    _templates = CreateDefaultTemplates();
-                    SaveTemplates();
+                    _templates = new Dictionary<string, MessageTemplate>();
                     return;
                 }
 
-                var json = File.ReadAllText(_scriptsFilePath);
-                
-                // Пытаемся загрузить в новом формате
-                try
+                var json = File.ReadAllText(_templatesFilePath);
+                if (string.IsNullOrWhiteSpace(json))
                 {
-                    _templates = JsonSerializer.Deserialize<Dictionary<string, MessageTemplateData>>(json) 
-                                ?? new Dictionary<string, MessageTemplateData>();
+                    _templates = new Dictionary<string, MessageTemplate>();
+                    return;
                 }
-                catch
+
+                var templatesFromFile = JsonSerializer.Deserialize<Dictionary<string, MessageTemplate>>(json, _jsonOptions);
+                _templates = new Dictionary<string, MessageTemplate>();
+
+                if (templatesFromFile != null)
                 {
-                    // Если не получилось, пытаемся загрузить в старом формате (простые строки)
-                    var oldFormat = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
-                    if (oldFormat != null)
+                    foreach (var kvp in templatesFromFile)
                     {
-                        _templates = ConvertFromOldFormat(oldFormat);
-                        SaveTemplates(); // Сохраняем в новом формате
-                    }
-                    else
-                    {
-                        _templates = new Dictionary<string, MessageTemplateData>();
+                        var template = kvp.Value;
+                        template.Name = kvp.Key; // Устанавливаем имя из ключа
+                        
+                        // Обновляем параметры на случай, если они изменились в шаблоне
+                        template.Parameters = ExtractParametersFromTemplate(template.Template);
+                        
+                        _templates[kvp.Key] = template;
                     }
                 }
             }
             catch (Exception ex)
             {
                 OnError?.Invoke($"Ошибка загрузки шаблонов: {ex.Message}");
-                _templates = new Dictionary<string, MessageTemplateData>();
+                _templates = new Dictionary<string, MessageTemplate>();
             }
         }
 
+        /// <summary>
+        /// Сохраняет шаблоны в JSON файл
+        /// </summary>
         private bool SaveTemplates()
         {
             try
             {
-                var options = new JsonSerializerOptions 
-                { 
-                    WriteIndented = true,
-                    Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-                };
-                
-                var json = JsonSerializer.Serialize(_templates, options);
-                File.WriteAllText(_scriptsFilePath, json);
+                // Создаем словарь без поля Name для сериализации
+                var templatesForSave = _templates.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new MessageTemplate
+                    {
+                        Template = kvp.Value.Template,
+                        Description = kvp.Value.Description,
+                        Parameters = kvp.Value.Parameters
+                    }
+                );
+
+                var json = JsonSerializer.Serialize(templatesForSave, _jsonOptions);
+                File.WriteAllText(_templatesFilePath, json);
                 return true;
             }
             catch (Exception ex)
@@ -269,97 +289,58 @@ namespace CoreLogic
             }
         }
 
+        /// <summary>
+        /// Извлекает параметры из шаблона сообщения
+        /// </summary>
         private string[] ExtractParametersFromTemplate(string template)
         {
             if (string.IsNullOrEmpty(template))
-                return new string[0];
+                return Array.Empty<string>();
 
-            var regex = new Regex(@"\{([^}]+)\}");
-            var matches = regex.Matches(template);
+            var matches = _parameterRegex.Matches(template);
             
-            return matches.Cast<Match>()
-                          .Select(m => m.Groups[1].Value)
-                          .Distinct()
-                          .ToArray();
+            return matches
+                .Cast<Match>()
+                .Select(m => m.Groups[1].Value)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToArray();
         }
 
-        private Dictionary<string, MessageTemplateData> CreateDefaultTemplates()
+        /// <summary>
+        /// Валидирует входные данные для шаблона
+        /// </summary>
+        private bool ValidateTemplateInput(string templateName, string template)
         {
-            return new Dictionary<string, MessageTemplateData>
+            if (string.IsNullOrWhiteSpace(templateName))
             {
-                ["no_reply"] = new MessageTemplateData
-                {
-                    Template = "Здравствуйте, {Имя}, вы не ответили на предыдущее сообщение...",
-                    Description = "Сообщение для напоминания о неотвеченном сообщении",
-                    Parameters = new[] { "Имя" }
-                },
-                ["first_message"] = new MessageTemplateData
-                {
-                    Template = "Здравствуйте, {Имя}, приглашаем вас на встречу {Дата}...",
-                    Description = "Первое сообщение для начала общения",
-                    Parameters = new[] { "Имя", "Дата" }
-                },
-                ["reminder"] = new MessageTemplateData
-                {
-                    Template = "Напоминаем, {Имя}, о встрече {Дата}. Просим подтвердить участие.",
-                    Description = "Напоминание о встрече или событии",
-                    Parameters = new[] { "Имя", "Дата" }
-                },
-                ["follow_up"] = new MessageTemplateData
-                {
-                    Template = "Добрый день, {Имя}! Следуем по нашей договоренности от {Дата}.",
-                    Description = "Последующее сообщение по договоренности",
-                    Parameters = new[] { "Имя", "Дата" }
-                },
-                ["custom_greeting"] = new MessageTemplateData
-                {
-                    Template = "Привет, {Имя}! Как дела? Не забыл про {Дата}?",
-                    Description = "Персонализированное приветствие",
-                    Parameters = new[] { "Имя", "Дата" }
-                }
-            };
-        }
-
-        private Dictionary<string, MessageTemplateData> ConvertFromOldFormat(Dictionary<string, string> oldTemplates)
-        {
-            var newTemplates = new Dictionary<string, MessageTemplateData>();
-            
-            foreach (var kvp in oldTemplates)
-            {
-                newTemplates[kvp.Key] = new MessageTemplateData
-                {
-                    Template = kvp.Value,
-                    Description = GetDefaultDescription(kvp.Key),
-                    Parameters = ExtractParametersFromTemplate(kvp.Value)
-                };
+                OnError?.Invoke("Название шаблона не может быть пустым");
+                return false;
             }
-            
-            return newTemplates;
+
+            if (string.IsNullOrWhiteSpace(template))
+            {
+                OnError?.Invoke("Шаблон не может быть пустым");
+                return false;
+            }
+
+            return true;
         }
 
-        private string GetDefaultDescription(string templateName)
+        /// <summary>
+        /// Создает копию шаблона для предотвращения изменения оригинала
+        /// </summary>
+        private static MessageTemplate CloneTemplate(MessageTemplate original)
         {
-            return templateName switch
+            return new MessageTemplate
             {
-                "no_reply" => "Сообщение для напоминания о неотвеченном сообщении",
-                "first_message" => "Первое сообщение для начала общения",
-                "reminder" => "Напоминание о встрече или событии",
-                "follow_up" => "Последующее сообщение по договоренности",
-                "custom_greeting" => "Персонализированное приветствие",
-                _ => $"Шаблон сообщения '{templateName}'"
+                Name = original.Name,
+                Template = original.Template,
+                Description = original.Description,
+                Parameters = (string[])original.Parameters.Clone()
             };
         }
 
         #endregion
-    }
-
-    /// <summary>
-    /// Внутренний класс для хранения данных шаблона в JSON
-    /// </summary>
-    internal class MessageTemplateData
-    {
-        public string Template { get; set; }
-        public string Description { get; set; }
-        public string[] Parameters { get; set; }
     }
 }
