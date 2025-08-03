@@ -290,6 +290,49 @@ namespace TelegramClient
             }
         }
 
+        // НОВЫЙ МЕТОД: Отправка сообщения с конкретного аккаунта конкретному пользователю
+        public async Task<bool> SendMessageFromConnectedAccountToUsername(TelegramAccount account, string username, string message)
+        {
+            if (account == null || !account.IsConnected || account.Client == null)
+            {
+                OnError?.Invoke("Переданный аккаунт не подключен или недоступен");
+                return false;
+            }
+
+            try
+            {
+                username = username.TrimStart('@');
+                
+                OnStatusChanged?.Invoke($"Отправка сообщения @{username} через аккаунт {account.Name}");
+                
+                // Попытка найти пользователя через поиск
+                var resolved = await account.Client.Contacts_ResolveUsername(username);
+                
+                if (resolved.users.Count > 0)
+                {
+                    var user = resolved.users.Values.First();
+                    
+                    // Создание InputPeerUser
+                    InputPeer peer = new InputPeerUser(user.ID, user.access_hash);
+                    
+                    await account.Client.SendMessageAsync(peer, message);
+                    
+                    OnStatusChanged?.Invoke($"Сообщение успешно отправлено @{username} через аккаунт {account.Name}");
+                    return true;
+                }
+                else
+                {
+                    OnError?.Invoke($"Пользователь @{username} не найден через аккаунт {account.Name}");
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke($"Ошибка отправки сообщения через аккаунт {account.Name}: {ex.Message}");
+                return false;
+            }
+        }
+
         public async Task<bool> SendMessageToUsernameAsync(string username, string message)
         {
             try

@@ -282,15 +282,33 @@
                                            FontWeight="Bold" 
                                            Margin="0,0,0,10"/>
                                 
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                    <TextBlock Text="Имя:" 
-                                               VerticalAlignment="Center" 
-                                               Margin="0,0,10,0"/>
-                                    <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
-                                             Width="200" 
-                                             Padding="8" 
-                                             Height="35"/>
-                                </StackPanel>
+                                <Grid Margin="0,0,0,10">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    
+                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                        <TextBlock Text="Имя:" Margin="0,0,0,5"/>
+                                        <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
+                                                 Padding="8" Height="35"/>
+                                    </StackPanel>
+                                    
+                                    <!-- НОВОЕ: ComboBox для выбора аккаунта для "нет ответа" -->
+                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                        <TextBlock Text="Отправить с аккаунта:" Margin="0,0,0,5"/>
+                                        <ComboBox ItemsSource="{Binding ConnectedAccounts}"
+                                                  SelectedItem="{Binding SelectedAccountForNoReply}"
+                                                  Height="35"
+                                                  Padding="8">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
+                                    </StackPanel>
+                                </Grid>
                                 
                                 <Button Content="Отправить 'нет ответа'" 
                                         Style="{StaticResource SecondaryButton}"
@@ -312,29 +330,47 @@
                                            FontWeight="Bold" 
                                            Margin="0,0,0,10"/>
                                 
-                                <Grid>
+                                <Grid Margin="0,0,0,10">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="*"/>
                                     </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
                                     
-                                    <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                    <StackPanel Grid.Column="0" Grid.Row="0" Margin="0,0,10,0">
                                         <TextBlock Text="Имя:" Margin="0,0,0,5"/>
                                         <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" 
                                                  Padding="8" Height="35"/>
                                     </StackPanel>
                                     
-                                    <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                    <StackPanel Grid.Column="1" Grid.Row="0" Margin="10,0,0,0">
                                         <TextBlock Text="Дата:" Margin="0,0,0,5"/>
                                         <TextBox Text="{Binding Date, UpdateSourceTrigger=PropertyChanged}" 
                                                  Padding="8" Height="35"/>
+                                    </StackPanel>
+
+                                    <!-- НОВОЕ: ComboBox для выбора аккаунта для "первое сообщение" -->
+                                    <StackPanel Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="1" Margin="0,10,0,0">
+                                        <TextBlock Text="Отправить с аккаунта:" Margin="0,0,0,5"/>
+                                        <ComboBox ItemsSource="{Binding ConnectedAccounts}"
+                                                  SelectedItem="{Binding SelectedAccountForFirstMessage}"
+                                                  Height="35"
+                                                  Padding="8">
+                                            <ComboBox.ItemTemplate>
+                                                <DataTemplate>
+                                                    <TextBlock Text="{Binding Name}"/>
+                                                </DataTemplate>
+                                            </ComboBox.ItemTemplate>
+                                        </ComboBox>
                                     </StackPanel>
                                 </Grid>
                                 
                                 <Button Content="Отправить 'первое сообщение'" 
                                         Style="{StaticResource SecondaryButton}"
                                         Command="{Binding SendFirstMessageCommand}" 
-                                        Margin="0,15,0,0" 
                                         HorizontalAlignment="Left"/>
                             </StackPanel>
                         </Border>

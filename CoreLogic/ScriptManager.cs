@@ -105,6 +105,56 @@ namespace CoreLogic
             }
         }
 
+        // НОВЫЙ МЕТОД: Отправка сообщения с выбранного аккаунта
+        public async Task<ScriptResult> SendScriptFromAccountAsync(string scriptType, string username, Dictionary<string, string> parameters, TelegramAccount selectedAccount)
+        {
+            try
+            {
+                var message = BuildMessage(scriptType, parameters);
+                var success = await _telegramService.SendMessageFromConnectedAccountToUsername(selectedAccount, username, message);
+                
+                return new ScriptResult
+                {
+                    Success = success,
+                    ErrorMessage = success ? null : "Не удалось отправить сообщение"
+                };
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke($"Ошибка отправки сообщения: {ex.Message}");
+                return new ScriptResult
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        // НОВЫЙ МЕТОД: Отправка сообщения найденному диалогу с выбранного аккаунта
+        public async Task<ScriptResult> SendScriptToFoundDialogFromAccountAsync(DialogInfo dialogInfo, string scriptType, Dictionary<string, string> parameters, TelegramAccount selectedAccount)
+        {
+            try
+            {
+                var message = BuildMessage(scriptType, parameters);
+                var success = await _telegramService.SendMessageFromConnectedAccountToUsername(selectedAccount, dialogInfo.Username, message);
+                
+                return new ScriptResult
+                {
+                    Success = success,
+                    ErrorMessage = success ? null : "Не удалось отправить сообщение"
+                };
+            }
+            catch (Exception ex)
+            {
+                OnError?.Invoke($"Ошибка отправки сообщения: {ex.Message}");
+                return new ScriptResult
+                {
+                    Success = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
         public List<TelegramAccount> GetConnectedAccounts()
         {
             try

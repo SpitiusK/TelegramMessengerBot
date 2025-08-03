@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -220,6 +221,29 @@ namespace UI.ViewModels
             }
         }
 
+        // НОВЫЕ СВОЙСТВА: Выбор аккаунта для отправки сообщений
+        private TelegramAccount _selectedAccountForNoReply;
+        public TelegramAccount SelectedAccountForNoReply
+        {
+            get => _selectedAccountForNoReply;
+            set
+            {
+                _selectedAccountForNoReply = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private TelegramAccount _selectedAccountForFirstMessage;
+        public TelegramAccount SelectedAccountForFirstMessage
+        {
+            get => _selectedAccountForFirstMessage;
+            set
+            {
+                _selectedAccountForFirstMessage = value;
+                OnPropertyChanged();
+            }
+        }
+
         public ObservableCollection<TelegramAccount> ConnectedAccounts { get; } = new();
         public ObservableCollection<string> StatusLog { get; } = new();
 
@@ -413,11 +437,22 @@ namespace UI.ViewModels
                     ["Имя"] = Name
                 };
 
-                var result = await _scriptManager.SendScriptToFoundDialogAsync(_currentDialog, "no_reply", parameters);
+                ScriptResult result;
+
+                // ОБНОВЛЕНО: Проверяем, выбран ли конкретный аккаунт
+                if (SelectedAccountForNoReply != null)
+                {
+                    result = await _scriptManager.SendScriptToFoundDialogFromAccountAsync(_currentDialog, "no_reply", parameters, SelectedAccountForNoReply);
+                }
+                else
+                {
+                    result = await _scriptManager.SendScriptToFoundDialogAsync(_currentDialog, "no_reply", parameters);
+                }
 
                 if (result.Success)
                 {
-                    StatusMessage = "Сообщение 'нет ответа' отправлено успешно";
+                    var accountInfo = SelectedAccountForNoReply != null ? $" через аккаунт {SelectedAccountForNoReply.Name}" : "";
+                    StatusMessage = $"Сообщение 'нет ответа' отправлено успешно{accountInfo}";
                 }
                 else
                 {
@@ -449,11 +484,22 @@ namespace UI.ViewModels
                     ["Дата"] = Date
                 };
 
-                var result = await _scriptManager.SendScriptAsync("first_message", Username, parameters);
+                ScriptResult result;
+
+                // ОБНОВЛЕНО: Проверяем, выбран ли конкретный аккаунт
+                if (SelectedAccountForFirstMessage != null)
+                {
+                    result = await _scriptManager.SendScriptFromAccountAsync("first_message", Username, parameters, SelectedAccountForFirstMessage);
+                }
+                else
+                {
+                    result = await _scriptManager.SendScriptAsync("first_message", Username, parameters);
+                }
 
                 if (result.Success)
                 {
-                    StatusMessage = "Первое сообщение отправлено успешно";
+                    var accountInfo = SelectedAccountForFirstMessage != null ? $" через аккаунт {SelectedAccountForFirstMessage.Name}" : "";
+                    StatusMessage = $"Первое сообщение отправлено успешно{accountInfo}";
                 }
                 else
                 {
@@ -521,12 +567,26 @@ namespace UI.ViewModels
             // Обновляем коллекцию в UI потоке
             _dispatcher.BeginInvoke(new Action(() =>
             {
+                var previousNoReplySelection = SelectedAccountForNoReply;
+                var previousFirstMessageSelection = SelectedAccountForFirstMessage;
+
                 ConnectedAccounts.Clear();
                 var accounts = _scriptManager.GetConnectedAccounts();
                 
                 foreach (var account in accounts)
                 {
                     ConnectedAccounts.Add(account);
+                }
+
+                // ОБНОВЛЕНО: Восстанавливаем выбранные аккаунты если они еще существуют
+                if (previousNoReplySelection != null)
+                {
+                    SelectedAccountForNoReply = accounts.FirstOrDefault(a => a.Name == previousNoReplySelection.Name);
+                }
+                
+                if (previousFirstMessageSelection != null)
+                {
+                    SelectedAccountForFirstMessage = accounts.FirstOrDefault(a => a.Name == previousFirstMessageSelection.Name);
                 }
 
                 StatusMessage = $"Подключено аккаунтов: {accounts.Count}";
@@ -555,6 +615,13 @@ namespace UI.ViewModels
 
                 if (success)
                 {
+                    // ОБНОВЛЕНО: Очищаем выбранные аккаунты если отключается выбранный
+                    if (SelectedAccountForNoReply?.Name == accountName)
+                        SelectedAccountForNoReply = null;
+                    
+                    if (SelectedAccountForFirstMessage?.Name == accountName)
+                        SelectedAccountForFirstMessage = null;
+
                     StatusMessage = $"Аккаунт {accountName} отключен успешно";
                     RefreshAccounts(null);
                 }
